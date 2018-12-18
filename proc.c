@@ -16,6 +16,8 @@ struct {
 static struct proc *initproc;
 
 int nextpid = 1;
+
+int cdate = 1;
 extern void forkret(void);
 extern void trapret(void);
 
@@ -90,6 +92,10 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  p->ctime = cdate++;
+  p->priority = 10;
+  p->MFQpriority = 1;
+  p->tickets = 1;
   for (i = 0; i < 33; ++i)
   {
     p->syscalls[i].count = 0;

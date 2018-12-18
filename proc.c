@@ -386,7 +386,7 @@ MFQscheduler(void) {
     	int found = 0;
     	if (MFQpriority == 1)
     	{
-    		cprintf(">>>>.%d", p->pid);
+    		//cprintf(">>>>.%d", p->pid);
     		struct proc *minP = 0;
 		    if(p->state != RUNNABLE || p->MFQpriority != MFQpriority)
 		        continue;

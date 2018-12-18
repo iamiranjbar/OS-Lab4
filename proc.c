@@ -367,6 +367,55 @@ scheduler(void)
   }
 }
 
+void
+MFQscheduler(void) {
+  struct proc *p;
+  struct cpu *c = mycpu();
+  c->proc = 0;
+  
+  for(;;){
+    // Enable interrupts on this processor.
+    sti();
+
+    // Loop over process table looking for process to run.
+    acquire(&ptable.lock);
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      struct proc *minP = 0;
+      if(p->state != RUNNABLE)
+        continue;
+      if(p->pid > 1)
+	  {
+		if (minP != 0){
+		// here I find the process with the lowest creation time (the first one that was created)
+			if(p->ctime < minP->ctime)
+				minP = p;
+		} else
+			minP = p;
+	  }
+	  if(minP != 0 && minP->state == RUNNABLE)
+		p = minP;
+	  if(p != 0)
+	  {
+	      // Switch to chosen process.  It is the process's job
+	      // to release ptable.lock and then reacquire it
+	      // before jumping back to us.
+	      c->proc = p;
+	      switchuvm(p);
+	      p->state = RUNNING;
+
+	      swtch(&(c->scheduler), p->context);
+	      switchkvm();
+
+	      // Process is done running for now.
+	      // It should have changed its p->state before coming back.
+	      c->proc = 0;
+	  }
+    }
+    release(&ptable.lock);
+
+  }	
+}
+
 int
 random(int max) {
 

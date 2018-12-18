@@ -124,6 +124,7 @@ void			ps(void);
 void            pinit(void);
 void            procdump(void);
 void            scheduler(void) __attribute__((noreturn));
+void			MFQscheduler(void) __attribute__((noreturn));
 void            sched(void);
 void            setproc(struct proc*);
 void            sleep(void*, struct spinlock*);

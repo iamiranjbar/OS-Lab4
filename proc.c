@@ -377,54 +377,61 @@ MFQscheduler(void) {
     // Enable interrupts on this processor.
     sti();
 
+    int MFQpriority = 1;
+
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-  //     struct proc *minP = 0;
-  //     if(p->state != RUNNABLE)
-  //       continue;
-  //         //if(p->pid > 1)
-	 //  {
-		// if (minP != 0){
-		// // here I find the process with the lowest creation time (the first one that was created)
-		// 	if(p->ctime < minP->ctime)
-		// 		minP = p;
-		// } else
-		// 	minP = p;
-	 //  }
-	 //  if(minP != 0 && minP->state == RUNNABLE)
-		// p = minP;
+    	if (MFQpriority == 1)
+    	{
+    		cprintf(">>>>.%d", p->pid);
+    		struct proc *minP = 0;
+		    if(p->state != RUNNABLE || p->MFQpriority != MFQpriority)
+		        continue;
+		    //if(p->pid > 1)
+			{
+				if (minP != 0){
+					// here I find the process with the lowest creation time (the first one that was created)
+					if(p->ctime < minP->ctime)
+						minP = p;
+				} else
+					minP = p;
+			}
+			if(minP != 0 && minP->state == RUNNABLE)
+				p = minP;
+    	} else if (MFQpriority == 2) {
+    		struct proc *highP = 0;
+		    struct proc *p1 = 0;
 
-	  struct proc *highP = 0;
-      struct proc *p1 = 0;
+		    if(p->state != RUNNABLE || p->MFQpriority != MFQpriority)
+		        continue;
+		    // Choose the process with highest priority (among RUNNABLEs)
+		    highP = p;
+		    for(p1 = ptable.proc; p1 < &ptable.proc[NPROC]; p1++){
+		        if((p1->state == RUNNABLE) && (highP->priority > p1->priority))
+		        	highP = p1;
+		    }
 
-      if(p->state != RUNNABLE)
-        continue;
-      // Choose the process with highest priority (among RUNNABLEs)
-      highP = p;
-      for(p1 = ptable.proc; p1 < &ptable.proc[NPROC]; p1++){
-        if((p1->state == RUNNABLE) && (highP->priority > p1->priority))
-          highP = p1;
-      }
+	    	if(highP != 0)
+				p = highP;
+    	}
 
-      if(highP != 0)
-		p = highP;	
-	  if(p != 0)
-	  {
+		if(p != 0)
+		{
 	      // Switch to chosen process.  It is the process's job
 	      // to release ptable.lock and then reacquire it
 	      // before jumping back to us.
-	      c->proc = p;
-	      switchuvm(p);
-	      p->state = RUNNING;
+	    	c->proc = p;
+	    	switchuvm(p);
+	    	p->state = RUNNING;
 
-	      swtch(&(c->scheduler), p->context);
-	      switchkvm();
+	    	swtch(&(c->scheduler), p->context);
+	    	switchkvm();
 
 	      // Process is done running for now.
 	      // It should have changed its p->state before coming back.
-	      c->proc = 0;
-	  }
+	    	c->proc = 0;
+		}
     }
     release(&ptable.lock);
 

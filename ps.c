@@ -10,7 +10,7 @@ main(int argc, char* argv[])
     int pid = 1;
     // int j = 0;
     int i;
-    for(i = 0; i< 10; i++)
+    for(i = 0; i< 1; i++)
 	if(pid>0)
 		pid=fork();
     if(pid<0)
@@ -19,7 +19,7 @@ main(int argc, char* argv[])
 	//printf(1,"child add to shared counter....\n");
 	   ps();
     } else {
-	for(i = 0; i< 10; i++)
+	for(i = 0; i< 1; i++)
 		wait();
 	printf(1,"finished:D\n");
     }

@@ -421,36 +421,38 @@ ps(void)
   struct proc *p;
 
   acquire(&ptable.lock);
-  cprintf("NAME\t\tPID\t\tSTATE\t\tPRIORITY\tTICKETS\t\tCREATETIME\t\tMFQPRIORITY\n");
+  cprintf("NAME       \tPID        \tSTATE      \tPRIORITY   \tTICKETS    \tCREATETIME \tMFQPRIORITY\n");
   cprintf("---------------------------------------------------------------------------------------------------\n");
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+	if(p->state == UNUSED)
+		continue;
   	cprintf("%s", p->name);
-   	cprintf("\t\t%d", p->pid);
+   	cprintf("\t%d", p->pid);
    	switch(p->state){
   	case UNUSED:
-  		cprintf("\t\t%s", "UNUSED  ");
+  		cprintf("\t%s", "UNUSED  ");
   		break;
   	case EMBRYO:
-  		cprintf("\t\t%s", "EMBRYO  ");
+  		cprintf("\t%s", "EMBRYO  ");
   		break;
   	case SLEEPING:
-  		cprintf("\t\t%s", "SLEEPING");
+  		cprintf("\t%s", "SLEEPING");
   		break;
   	case RUNNABLE:
-  		cprintf("\t\t%s", "RUNNABLE");
+  		cprintf("\t%s", "RUNNABLE");
   		break;
   	case RUNNING:
-  		cprintf("\t\t%s", "RUNNING ");
+  		cprintf("\t%s", "RUNNING ");
   		break;
   	case ZOMBIE:
-  		cprintf("\t\t%s", "ZOMBIE  ");
+  		cprintf("\t%s", "ZOMBIE  ");
   		break;
   	}
 
     cprintf("\t%d", p->priority);
-    cprintf("\t\t%d", p->tickets);
-    cprintf("\t\t%d", p->ctime);
-    cprintf("\t\t%d\n\n", p->MFQpriority);
+    cprintf("\t%d", p->tickets);
+    cprintf("\t%d", p->ctime);
+    cprintf("\t%d\n\n", p->MFQpriority);
   }
   release(&ptable.lock);
 }

@@ -381,7 +381,9 @@ MFQscheduler(void) {
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+    notfound:
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    	int found = 0;
     	if (MFQpriority == 1)
     	{
     		cprintf(">>>>.%d", p->pid);
@@ -397,8 +399,10 @@ MFQscheduler(void) {
 				} else
 					minP = p;
 			}
-			if(minP != 0 && minP->state == RUNNABLE)
+			if(minP != 0 && minP->state == RUNNABLE){
 				p = minP;
+				found = 1;
+			}
     	} else if (MFQpriority == 2) {
     		struct proc *highP = 0;
 		    struct proc *p1 = 0;
@@ -412,8 +416,21 @@ MFQscheduler(void) {
 		        	highP = p1;
 		    }
 
-	    	if(highP != 0)
+	    	if(highP != 0){
 				p = highP;
+				found = 1;
+	    	}
+    	}
+
+    	if (found == 0)
+    	{
+    		if (MFQpriority == 3)
+    		{
+    			MFQpriority = 1;
+    		} else {
+    			MFQpriority += 1;
+    		}
+    		goto notfound;
     	}
 
 		if(p != 0)

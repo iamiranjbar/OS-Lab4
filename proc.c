@@ -383,7 +383,7 @@ MFQscheduler(void) {
       struct proc *minP = 0;
       if(p->state != RUNNABLE)
         continue;
-      if(p->pid > 1)
+          //if(p->pid > 1)
 	  {
 		if (minP != 0){
 		// here I find the process with the lowest creation time (the first one that was created)

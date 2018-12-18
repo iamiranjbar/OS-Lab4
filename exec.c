@@ -100,6 +100,10 @@ exec(char *path, char **argv)
   curproc->sz = sz;
   curproc->tf->eip = elf.entry;  // main
   curproc->tf->esp = sp;
+  // cmostime(&curproc->ctime);
+  // curproc->priority = 10;
+  // curproc->MFQpriority = 1;
+  // curproc->tickets = 1;
   switchuvm(curproc);
   freevm(oldpgdir);
   return 0;

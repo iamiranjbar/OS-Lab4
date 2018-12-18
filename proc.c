@@ -91,11 +91,11 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-  p->ctime = cdate++;
+  p->ctime = ticks;
   p->priority = 10;
   p->MFQpriority = 1;
   p->tickets = 1;
-  for (i = 0; i < 33; ++i)
+  for (i = 0; i < 36; ++i)
   {
     p->syscalls[i].count = 0;
   }
@@ -366,6 +366,77 @@ scheduler(void)
   }
 }
 
+void
+change_tickets(int pid, int tickets)
+{
+  struct proc *p;
+
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid) {
+        p->tickets = tickets;
+        break;
+    }
+  }
+  release(&ptable.lock);
+}
+
+void
+ps(void)
+{
+  struct proc *p;
+
+  acquire(&ptable.lock);
+  cprintf("NAME\t\tPID\t\tSTATE\t\tPRIORITY\tTICKETS\t\tCREATETIME\t\tMFQPRIORITY\n");
+  cprintf("---------------------------------------------------------------------------------------------------\n");
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+  	cprintf("%s", p->name);
+   	cprintf("\t\t%d", p->pid);
+   	switch(p->state){
+  	case UNUSED:
+  		cprintf("\t\t%s", "UNUSED  ");
+  		break;
+  	case EMBRYO:
+  		cprintf("\t\t%s", "EMBRYO  ");
+  		break;
+  	case SLEEPING:
+  		cprintf("\t\t%s", "SLEEPING");
+  		break;
+  	case RUNNABLE:
+  		cprintf("\t\t%s", "RUNNABLE");
+  		break;
+  	case RUNNING:
+  		cprintf("\t\t%s", "RUNNING ");
+  		break;
+  	case ZOMBIE:
+  		cprintf("\t\t%s", "ZOMBIE  ");
+  		break;
+  	}
+
+    cprintf("\t%d", p->priority);
+    cprintf("\t\t%d", p->tickets);
+    cprintf("\t\t%d", p->ctime);
+    cprintf("\t\t%d\n", p->MFQpriority);
+  }
+  release(&ptable.lock);
+}
+
+// Change Process priority
+void
+chpr(int pid, int priority)
+{
+  struct proc *p;
+
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid) {
+        p->priority = priority;
+        break;
+    }
+  }
+  release(&ptable.lock);
+}
+
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
 // intena because intena is a property of this
@@ -523,7 +594,7 @@ invocation_log(int pid)
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
     if(p->pid == pid){
-      for (i = 0; i < 33; ++i)
+      for (i = 0; i < 36; ++i)
       {
         if (p->syscalls[i].count > 0)
         {
@@ -538,7 +609,7 @@ invocation_log(int pid)
               cprintf("%d %s  (%s)\n",p->pid, p->syscalls[i].name, a->type[0]); 
             if (i == 21 || i == 22 || i == 24 || i == 5 || i == 11 || i == 12 || i == 9 || i == 20)
               cprintf("%d %s  (%s %d)\n",p->pid, p->syscalls[i].name, a->type[0], a->int_argv[0]);
-            if (i == 23)
+            if (i == 23 || i == 33 || i == 34)
               cprintf("%d %s  (%s %d, %s %d)\n",p->pid, p->syscalls[i].name,
                 a->type[0],a->int_argv[0],
                 a->type[1],a->int_argv[1]);

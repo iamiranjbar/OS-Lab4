@@ -32,3 +32,6 @@
 #define SYS_rwtest 31
 #define SYS_wrinit 32
 #define SYS_wrtest 33
+#define SYS_chtickets 34
+#define SYS_chpr 35
+#define SYS_ps 36

@@ -199,6 +199,32 @@ sys_getpid(void)
   return myproc()->pid;
 }
 
+int sys_chtickets(void)
+{
+  int pid, ticks_in;
+
+  if (argint(0, &pid) < 0 || argint(1, &ticks_in) < 0)
+    return -1;
+  change_tickets(pid, ticks_in);
+  return 0;
+}
+
+int sys_chpr(void)
+{
+  int pid, pr;
+
+  if (argint(0, &pid) < 0 || argint(1, &pr) < 0)
+    return -1;
+  chpr(pid, pr);
+  return 0;
+}
+
+int sys_ps(void)
+{
+  ps();
+  return 0;
+}
+
 int
 sys_sbrk(void)
 {

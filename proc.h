@@ -77,6 +77,13 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
   struct systemcall syscalls[SYS_CALL_COUNT];
+  int priority;                // Process priority
+  int MFQpriority;
+  uint ctime;                   // Process creation time
+  int stime;                   //process SLEEPING time
+  int retime;                  //process READY(RUNNABLE) time
+  int rutime;                  //process RUNNING time
+  int tickets; // Process tickets used in LOTTERY scheduling algorithm
 };
 
 struct node{

@@ -380,20 +380,35 @@ MFQscheduler(void) {
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      struct proc *minP = 0;
+  //     struct proc *minP = 0;
+  //     if(p->state != RUNNABLE)
+  //       continue;
+  //         //if(p->pid > 1)
+	 //  {
+		// if (minP != 0){
+		// // here I find the process with the lowest creation time (the first one that was created)
+		// 	if(p->ctime < minP->ctime)
+		// 		minP = p;
+		// } else
+		// 	minP = p;
+	 //  }
+	 //  if(minP != 0 && minP->state == RUNNABLE)
+		// p = minP;
+
+	  struct proc *highP = 0;
+      struct proc *p1 = 0;
+
       if(p->state != RUNNABLE)
         continue;
-          //if(p->pid > 1)
-	  {
-		if (minP != 0){
-		// here I find the process with the lowest creation time (the first one that was created)
-			if(p->ctime < minP->ctime)
-				minP = p;
-		} else
-			minP = p;
-	  }
-	  if(minP != 0 && minP->state == RUNNABLE)
-		p = minP;
+      // Choose the process with highest priority (among RUNNABLEs)
+      highP = p;
+      for(p1 = ptable.proc; p1 < &ptable.proc[NPROC]; p1++){
+        if((p1->state == RUNNABLE) && (highP->priority > p1->priority))
+          highP = p1;
+      }
+
+      if(highP != 0)
+		p = highP;	
 	  if(p != 0)
 	  {
 	      // Switch to chosen process.  It is the process's job

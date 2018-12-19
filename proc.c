@@ -378,58 +378,48 @@ MFQscheduler(void) {
     sti();
 
     int MFQpriority = 1;
-
+    struct proc *minP = 0;
+    struct proc *highP = 0;
+    struct proc *chosen_proc = 0;
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     notfound:
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     	int found = 0;
-    	if (MFQpriority == 1)
+        if(p->state != RUNNABLE || p->MFQpriority != MFQpriority)
+            continue;
+        if (MFQpriority == 1){
+            
+        }
+    	else if (MFQpriority == 2)
     	{
-    		//cprintf(">>>>.%d", p->pid);
-    		struct proc *minP = 0;
-		    if(p->state != RUNNABLE || p->MFQpriority != MFQpriority)
-		        continue;
-		    //if(p->pid > 1)
-			{
-				if (minP != 0){
-					// here I find the process with the lowest creation time (the first one that was created)
-					if(p->ctime < minP->ctime)
-						minP = p;
-				} else
-					minP = p;
-			}
-			if(minP != 0 && minP->state == RUNNABLE){
-				p = minP;
-				found = 1;
-			}
-    	} else if (MFQpriority == 2) {
-    		struct proc *highP = 0;
-		    struct proc *p1 = 0;
+            if (minP != 0){
+                // here I find the process with the lowest creation time (the first one that was created)
+                if(p->ctime < minP->ctime)
+                    minP = p;
+            }
+            else
+                minP = p;
 
-		    if(p->state != RUNNABLE || p->MFQpriority != MFQpriority)
-		        continue;
+            if(minP != 0 && minP->state == RUNNABLE){
+                chosen_proc = minP;
+                found = 1;
+            }
+    	} else if (MFQpriority == 3) {
+    		
 		    // Choose the process with highest priority (among RUNNABLEs)
-		    highP = p;
-		    for(p1 = ptable.proc; p1 < &ptable.proc[NPROC]; p1++){
-		        if((p1->state == RUNNABLE) && (highP->priority > p1->priority))
-		        	highP = p1;
-		    }
+            if(highP->priority > p->priority)
+                highP = p;
 
 	    	if(highP != 0){
-				p = highP;
-				found = 1;
+                p = highP;
+                found = 1;
 	    	}
     	}
 
     	if (found == 0)
     	{
-    		if (MFQpriority == 3)
-    		{
-    			MFQpriority = 1;
-    		} else {
-    			MFQpriority += 1;
-    		}
+    		MFQpriority = (MFQpriority+1) % 3;
     		goto notfound;
     	}
 

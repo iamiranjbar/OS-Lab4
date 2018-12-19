@@ -383,13 +383,12 @@ MFQscheduler(void) {
     struct proc *chosen_proc = 0;
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    notfound:
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     	int found = 0;
         if(p->state != RUNNABLE || p->MFQpriority != MFQpriority)
             continue;
         if (MFQpriority == 1){
-            
+
         }
     	else if (MFQpriority == 2)
     	{
@@ -412,7 +411,7 @@ MFQscheduler(void) {
                 highP = p;
 
 	    	if(highP != 0){
-                p = highP;
+                chosen_proc = highP;
                 found = 1;
 	    	}
     	}
@@ -420,19 +419,19 @@ MFQscheduler(void) {
     	if (found == 0)
     	{
     		MFQpriority = (MFQpriority+1) % 3;
-    		goto notfound;
+    		continue;
     	}
 
-		if(p != 0)
+		if(chosen_proc != 0)
 		{
 	      // Switch to chosen process.  It is the process's job
 	      // to release ptable.lock and then reacquire it
 	      // before jumping back to us.
-	    	c->proc = p;
+	    	c->proc = chosen_proc;
 	    	switchuvm(p);
-	    	p->state = RUNNING;
+	    	chosen_proc->state = RUNNING;
 
-	    	swtch(&(c->scheduler), p->context);
+	    	swtch(&(c->scheduler), chosen_proc->context);
 	    	switchkvm();
 
 	      // Process is done running for now.

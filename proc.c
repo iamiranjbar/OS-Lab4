@@ -400,9 +400,9 @@ MFQscheduler(void) {
 	            if (total > 0 && rand <= 0){
 	            	rand = random(total);
 	            }
-	            
+
 	            rand -= p->tickets;
-	            if(rand < 0){
+	            if(rand <= 0){
 	                p = p;
 	                found = 1;
 	            }

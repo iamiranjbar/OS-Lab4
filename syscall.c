@@ -123,8 +123,9 @@ extern int sys_wrtest(void);
 extern int sys_chtickets(void);
 extern int sys_chpr(void);
 extern int sys_ps(void);
+extern int sys_chmfq(void);
 
-static char* syscalls_string [36] = {
+static char* syscalls_string [37] = {
 "sys_fork",
 "sys_exit",
 "sys_wait",
@@ -160,7 +161,8 @@ static char* syscalls_string [36] = {
 "sys_wrtest",
 "sys_chtickets",
 "sys_chpr",
-"sys_ps"
+"sys_ps",
+"sys_chmfq"
 };
 
 static int (*syscalls[])(void) = {
@@ -199,7 +201,8 @@ static int (*syscalls[])(void) = {
 [SYS_wrtest]  sys_wrtest,
 [SYS_chtickets]  sys_chtickets,
 [SYS_chpr]  sys_chpr,
-[SYS_ps]  sys_ps
+[SYS_ps]  sys_ps,
+[SYS_chmfq]  sys_chmfq
 };
 
 void fill_arglist(struct syscallarg* end, int type){
@@ -244,6 +247,7 @@ void fill_arglist(struct syscallarg* end, int type){
                 case 24:
                 case 34:
                 case 35:
+                case 37:
                         safestrcpy(end->type[0], "int", strlen("int")+1);
                         safestrcpy(end->type[1], "int", strlen("int")+1);
 			if (argint(0, &int_arg) < 0 || argint(1, &int_arg2) < 0){

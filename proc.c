@@ -592,6 +592,22 @@ chpr(int pid, int priority)
   release(&ptable.lock);
 }
 
+// Change Process priority
+void
+chmfq(int pid, int priority)
+{
+  struct proc *p;
+
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid) {
+        p->MFQpriority = priority;
+        break;
+    }
+  }
+  release(&ptable.lock);
+}
+
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
 // intena because intena is a property of this

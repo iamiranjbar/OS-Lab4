@@ -35,3 +35,4 @@
 #define SYS_chtickets 34
 #define SYS_chpr 35
 #define SYS_ps 36
+#define SYS_chmfq 37

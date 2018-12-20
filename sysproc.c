@@ -219,6 +219,16 @@ int sys_chpr(void)
   return 0;
 }
 
+int sys_chmfq(void)
+{
+  int pid, pr;
+
+  if (argint(0, &pid) < 0 || argint(1, &pr) < 0)
+    return -1;
+  chmfq(pid, pr);
+  return 0; 
+}
+
 int sys_ps(void)
 {
   ps();

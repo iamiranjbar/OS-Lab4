@@ -1,4 +1,4 @@
-#define SYS_CALL_COUNT 36
+#define SYS_CALL_COUNT 37
 
 // Per-CPU state
 struct cpu {

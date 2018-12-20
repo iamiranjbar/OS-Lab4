@@ -7,6 +7,7 @@ void ticketlockinit(void);
 void ticketlocktest(void);
 void chtickets(int, int);
 void chpr(int,int);
+void chmfq(int,int);
 void ps(void);
 void rwinit(void);
 void rwtest(uint);

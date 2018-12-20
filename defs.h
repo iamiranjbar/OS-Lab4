@@ -122,6 +122,7 @@ struct cpu*     mycpu(void);
 struct proc*    myproc();
 void			change_tickets(int,int);
 void			chpr(int,int);
+void 			chmfq(int,int);
 void			ps(void);
 void            pinit(void);
 void            procdump(void);

@@ -307,6 +307,9 @@ wait(void)
         p->killed = 0;
         p->ctime = 0;
         p->state = UNUSED;
+        p->priority = 0;
+        p->MFQpriority = 0;
+        p->tickets = 0;
         release(&ptable.lock);
         return pid;
       }
@@ -381,14 +384,22 @@ MFQscheduler(void) {
     struct proc *minP = 0;
     struct proc *highP = 0;
     struct proc *chosen_proc = 0;
+    int rand = -1;
+    // int found = 0;
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    	int found = 0;
         if(p->state != RUNNABLE || p->MFQpriority != MFQpriority)
             continue;
         if (MFQpriority == 1){
-
+            int total = totalTickets();
+            if (total > 0 && random < 0)
+            rand = random(total);
+            rand -= p->tickets;
+            if(rand < 0){
+                chosen_proc = p;
+              // found = 1;
+            }
         }
     	else if (MFQpriority == 2)
     	{
@@ -402,7 +413,7 @@ MFQscheduler(void) {
 
             if(minP != 0 && minP->state == RUNNABLE){
                 chosen_proc = minP;
-                found = 1;
+                // found = 1;
             }
     	} else if (MFQpriority == 3) {
     		
@@ -412,14 +423,8 @@ MFQscheduler(void) {
 
 	    	if(highP != 0){
                 chosen_proc = highP;
-                found = 1;
+                // found = 1;
 	    	}
-    	}
-
-    	if (found == 0)
-    	{
-    		MFQpriority = (MFQpriority+1) % 3;
-    		continue;
     	}
 
 		if(chosen_proc != 0)
@@ -440,7 +445,13 @@ MFQscheduler(void) {
 		}
     }
     release(&ptable.lock);
-
+    if (chosen_proc == 0 )
+    {
+    	if (MFQpriority < 3)
+            MFQpriority++;
+        else
+            MFQpriority = 1;
+    }
   }	
 }
 
@@ -476,6 +487,20 @@ random(int max) {
   return rand;
 }
 
+int
+totalTickets(void) {
+
+	struct proc *p;
+	int total = 0;
+    acquire(&ptable.lock);
+	for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+		if (p->state == RUNNABLE && p->MFQpriority == 1) {
+			total += p->tickets;
+		}
+	}
+    release(&ptable.lock);
+	return total;
+}
 
 void
 change_tickets(int pid, int tickets)

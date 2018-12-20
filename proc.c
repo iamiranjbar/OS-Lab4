@@ -395,17 +395,20 @@ MFQscheduler(void) {
 	    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 	        if(p->state != RUNNABLE || p->MFQpriority != i)
 	            continue;
-	        if (i == 2){
+	        if (i == 1){
+	        	// cprintf("entry?>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<\n");
 	            int total = totalTickets();
+	            // cprintf("total?>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<\n");
 	            if (total > 0 && random < 0)
 	            	rand = random(total);
+	            // cprintf("%d <<>> %d\n", total, rand);
 	            rand -= p->tickets;
 	            if(rand < 0){
 	                p = p;
 	                found = 1;
 	            }
 	        }
-	    	else if (i == 3)
+	    	else if (i == 2)
 	    	{
 	            if (minP != 0){
 	                // here I find the process with the lowest creation time (the first one that was created)
@@ -419,7 +422,7 @@ MFQscheduler(void) {
 	                p = minP;
 	                found = 1;
 	            }
-	    	} else if (i == 1) {
+	    	} else if (i == 3) {
 	    		if (highP == 0)
 	    		{
 	    			highP = p;
@@ -434,7 +437,7 @@ MFQscheduler(void) {
 		    	}
 	    	}
 
-			if(p != 0)
+			if(p != 0 && found == 1)
 			{
 		      // Switch to chosen process.  It is the process's job
 		      // to release ptable.lock and then reacquire it
@@ -506,13 +509,14 @@ totalTickets(void) {
 
 	struct proc *p;
 	int total = 0;
-    acquire(&ptable.lock);
+    //acquire(&ptable.lock);
+    //cprintf("ticket_lock >>>>>>>>>>>>>>>>>>>>>>>>\n");
 	for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
 		if (p->state == RUNNABLE && p->MFQpriority == 1) {
 			total += p->tickets;
 		}
 	}
-    release(&ptable.lock);
+    //release(&ptable.lock);
 	return total;
 }
 

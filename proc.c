@@ -398,14 +398,14 @@ MFQscheduler(void) {
 	        if (i == 2){
 	            int total = totalTickets();
 	            if (total > 0 && random < 0)
-	            rand = random(total);
+	            	rand = random(total);
 	            rand -= p->tickets;
 	            if(rand < 0){
 	                p = p;
 	                found = 1;
 	            }
 	        }
-	    	else if (i == 1)
+	    	else if (i == 3)
 	    	{
 	            if (minP != 0){
 	                // here I find the process with the lowest creation time (the first one that was created)
@@ -419,10 +419,13 @@ MFQscheduler(void) {
 	                p = minP;
 	                found = 1;
 	            }
-	    	} else if (i == 3) {
-	    		
+	    	} else if (i == 1) {
+	    		if (highP == 0)
+	    		{
+	    			highP = p;
+	    		}
 			    // Choose the process with highest priority (among RUNNABLEs)
-	            if(highP->priority > p->priority)
+	            if(highP->priority >= p->priority)
 	                highP = p;
 
 		    	if(highP != 0){

@@ -16,7 +16,6 @@ struct {
 static struct proc *initproc;
 
 int nextpid = 1;
-int cdate = 1;
 extern void forkret(void);
 extern void trapret(void);
 
@@ -91,11 +90,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-  p->ctime = ticks;
-  p->priority = 10;
-  p->MFQpriority = 1;
-  p->tickets = 1;
-  for (i = 0; i < 36; ++i)
+  for (i = 0; i < 33; ++i)
   {
     p->syscalls[i].count = 0;
   }
@@ -305,11 +300,7 @@ wait(void)
         p->parent = 0;
         p->name[0] = 0;
         p->killed = 0;
-        p->ctime = 0;
         p->state = UNUSED;
-        p->priority = 0;
-        p->MFQpriority = 0;
-        p->tickets = 0;
         release(&ptable.lock);
         return pid;
       }
@@ -368,211 +359,6 @@ scheduler(void)
     release(&ptable.lock);
 
   }
-}
-
-void
-MFQscheduler(void) {
-  struct proc *p;
-  struct cpu *c = mycpu();
-  c->proc = 0;
-  
-  for(;;){
-    // Enable interrupts on this processor.
-    sti();
-
-    int MFQpriority = 1;
-    struct proc *minP = 0;
-    struct proc *highP = 0;
-    struct proc *chosen_proc = 0;
-    int rand = -1;
-    // int found = 0;
-    // Loop over process table looking for process to run.
-    acquire(&ptable.lock);
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        if(p->state != RUNNABLE || p->MFQpriority != MFQpriority)
-            continue;
-        if (MFQpriority == 1){
-            int total = totalTickets();
-            if (total > 0 && random < 0)
-            rand = random(total);
-            rand -= p->tickets;
-            if(rand < 0){
-                chosen_proc = p;
-              // found = 1;
-            }
-        }
-    	else if (MFQpriority == 2)
-    	{
-            if (minP != 0){
-                // here I find the process with the lowest creation time (the first one that was created)
-                if(p->ctime < minP->ctime)
-                    minP = p;
-            }
-            else
-                minP = p;
-
-            if(minP != 0 && minP->state == RUNNABLE){
-                chosen_proc = minP;
-                // found = 1;
-            }
-    	} else if (MFQpriority == 3) {
-    		
-		    // Choose the process with highest priority (among RUNNABLEs)
-            if(highP->priority > p->priority)
-                highP = p;
-
-	    	if(highP != 0){
-                chosen_proc = highP;
-                // found = 1;
-	    	}
-    	}
-
-		if(chosen_proc != 0)
-		{
-	      // Switch to chosen process.  It is the process's job
-	      // to release ptable.lock and then reacquire it
-	      // before jumping back to us.
-	    	c->proc = chosen_proc;
-	    	switchuvm(p);
-	    	chosen_proc->state = RUNNING;
-
-	    	swtch(&(c->scheduler), chosen_proc->context);
-	    	switchkvm();
-
-	      // Process is done running for now.
-	      // It should have changed its p->state before coming back.
-	    	c->proc = 0;
-		}
-    }
-    release(&ptable.lock);
-    if (chosen_proc == 0 )
-    {
-    	if (MFQpriority < 3)
-            MFQpriority++;
-        else
-            MFQpriority = 1;
-    }
-  }	
-}
-
-int
-random(int max) {
-
-  if(max <= 0) {
-    return 1;
-  }
-
-  static int z1 = 12345; // 12345 for rest of zx
-  static int z2 = 12345; // 12345 for rest of zx
-  static int z3 = 12345; // 12345 for rest of zx
-  static int z4 = 12345; // 12345 for rest of zx
-
-  int b;
-  b = (((z1 << 6) ^ z1) >> 13);
-  z1 = (((z1 & 4294967294) << 18) ^ b);
-  b = (((z2 << 2) ^ z2) >> 27);
-  z2 = (((z2 & 4294967288) << 2) ^ b);
-  b = (((z3 << 13) ^ z3) >> 21);
-  z3 = (((z3 & 4294967280) << 7) ^ b);
-  b = (((z4 << 3) ^ z4) >> 12);
-  z4 = (((z4 & 4294967168) << 13) ^ b);
-
-  // if we have an argument, then we can use it
-  int rand = ((z1 ^ z2 ^ z3 ^ z4)) % max;
-
-  if(rand < 0) {
-    rand = rand * -1;
-  }
-
-  return rand;
-}
-
-int
-totalTickets(void) {
-
-	struct proc *p;
-	int total = 0;
-    acquire(&ptable.lock);
-	for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-		if (p->state == RUNNABLE && p->MFQpriority == 1) {
-			total += p->tickets;
-		}
-	}
-    release(&ptable.lock);
-	return total;
-}
-
-void
-change_tickets(int pid, int tickets)
-{
-  struct proc *p;
-
-  acquire(&ptable.lock);
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->pid == pid) {
-        p->tickets = tickets;
-        break;
-    }
-  }
-  release(&ptable.lock);
-}
-
-void
-ps(void)
-{
-  struct proc *p;
-
-  acquire(&ptable.lock);
-  cprintf("NAME       \tPID        \tSTATE      \tPRIORITY   \tTICKETS    \tCREATETIME \tMFQPRIORITY\n");
-  cprintf("---------------------------------------------------------------------------------------------------\n");
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-	if(p->state == UNUSED)
-		continue;
-  	cprintf("%s", p->name);
-   	cprintf("\t%d", p->pid);
-   	switch(p->state){
-  	case UNUSED:
-  		cprintf("\t%s", "UNUSED  ");
-  		break;
-  	case EMBRYO:
-  		cprintf("\t%s", "EMBRYO  ");
-  		break;
-  	case SLEEPING:
-  		cprintf("\t%s", "SLEEPING");
-  		break;
-  	case RUNNABLE:
-  		cprintf("\t%s", "RUNNABLE");
-  		break;
-  	case RUNNING:
-  		cprintf("\t%s", "RUNNING ");
-  		break;
-  	case ZOMBIE:
-  		cprintf("\t%s", "ZOMBIE  ");
-  		break;
-  	}
-
-    cprintf("\t%d", p->priority);
-    cprintf("\t%d", p->tickets);
-    cprintf("\t%d", p->ctime);
-    cprintf("\t%d\n\n", p->MFQpriority);
-  }
-  release(&ptable.lock);
-}
-
-// Change Process priority
-void
-chpr(int pid, int priority)
-{
-  struct proc *p;
-
-  acquire(&ptable.lock);
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->pid == pid) {
-        p->priority = priority;
-        break;
-    }
-  }
-  release(&ptable.lock);
 }
 
 // Enter scheduler.  Must hold only ptable.lock
@@ -732,7 +518,7 @@ invocation_log(int pid)
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
     if(p->pid == pid){
-      for (i = 0; i < 36; ++i)
+      for (i = 0; i < 33; ++i)
       {
         if (p->syscalls[i].count > 0)
         {
@@ -747,7 +533,7 @@ invocation_log(int pid)
               cprintf("%d %s  (%s)\n",p->pid, p->syscalls[i].name, a->type[0]); 
             if (i == 21 || i == 22 || i == 24 || i == 5 || i == 11 || i == 12 || i == 9 || i == 20)
               cprintf("%d %s  (%s %d)\n",p->pid, p->syscalls[i].name, a->type[0], a->int_argv[0]);
-            if (i == 23 || i == 33 || i == 34)
+            if (i == 23)
               cprintf("%d %s  (%s %d, %s %d)\n",p->pid, p->syscalls[i].name,
                 a->type[0],a->int_argv[0],
                 a->type[1],a->int_argv[1]);

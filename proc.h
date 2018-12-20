@@ -80,10 +80,10 @@ struct proc {
   int priority;                // Process priority
   int MFQpriority;
   int ctime;                   // Process creation time
-  //int stime;                   //process SLEEPING time
-  //int retime;                  //process READY(RUNNABLE) time
-  //int rutime;                  //process RUNNING time
-  int tickets; // Process tickets used in LOTTERY scheduling algorithm
+  //int stime;                 // Process SLEEPING time
+  //int retime;                // Process READY(RUNNABLE) time
+  //int rutime;                // Process RUNNING time
+  int tickets;                 // Process tickets used in LOTTERY scheduling algorithm
 };
 
 struct node{

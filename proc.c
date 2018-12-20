@@ -396,12 +396,11 @@ MFQscheduler(void) {
 	        if(p->state != RUNNABLE || p->MFQpriority != i)
 	            continue;
 	        if (i == 1){
-	        	// cprintf("entry?>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<\n");
 	            int total = totalTickets();
-	            // cprintf("total?>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<\n");
-	            if (total > 0 && random < 0)
+	            if (total > 0 && rand <= 0){
 	            	rand = random(total);
-	            // cprintf("%d <<>> %d\n", total, rand);
+	            }
+	            
 	            rand -= p->tickets;
 	            if(rand < 0){
 	                p = p;

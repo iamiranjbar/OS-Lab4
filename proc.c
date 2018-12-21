@@ -390,12 +390,11 @@ MFQscheduler(void) {
     acquire(&ptable.lock);
     for (int i = 1; i <= MFQpriority; ++i)
     {
-	    
-	    // Loop over process table looking for process to run.
-	    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-	        if(p->state != RUNNABLE || p->MFQpriority != i)
-	            continue;
-	        if (i == 1){
+	    if (i == 1){
+		    // Loop over process table looking for process to run.
+		    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+		        if(p->state != RUNNABLE || p->MFQpriority != i)
+		            continue;
 	            int total = totalTickets();
 	            if (total > 0 && rand <= 0){
 	            	rand = random(total);
@@ -406,9 +405,31 @@ MFQscheduler(void) {
 	                p = p;
 	                found = 1;
 	            }
+            	if(p != 0 && found == 1)
+				{
+					// cprintf("one%d<><>%d\n", i, p->pid);
+			      // Switch to chosen process.  It is the process's job
+			      // to release ptable.lock and then reacquire it
+			      // before jumping back to us.
+			    	c->proc = p;
+			    	switchuvm(p);
+			    	p->state = RUNNING;
+
+			    	swtch(&(c->scheduler), p->context);
+			    	switchkvm();
+
+			      // Process is done running for now.
+			      // It should have changed its p->state before coming back.
+			    	c->proc = 0;
+			    	break;
+				}
 	        }
-	    	else if (i == 2)
-	    	{
+	    }
+	    else if (i == 2)
+    	{
+    		for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+		        if(p->state != RUNNABLE || p->MFQpriority != i)
+		            continue;
 	            if (minP != 0){
 	                // here I find the process with the lowest creation time (the first one that was created)
 	                if(p->ctime < minP->ctime)
@@ -416,28 +437,15 @@ MFQscheduler(void) {
 	            }
 	            else
 	                minP = p;
+	        }
 
-	            if(minP != 0 && minP->state == RUNNABLE){
-	                p = minP;
-	                found = 1;
-	            }
-	    	} else if (i == 3) {
-	    		if (highP == 0)
-	    		{
-	    			highP = p;
-	    		}
-			    // Choose the process with highest priority (among RUNNABLEs)
-	            if(highP->priority >= p->priority)
-	                highP = p;
-
-		    	if(highP != 0){
-	                p = highP;
-	                found = 1;
-		    	}
-	    	}
-
-			if(p != 0 && found == 1)
+            if(minP != 0 && minP->state == RUNNABLE){
+                p = minP;
+                found = 1;
+            }
+            if(p != 0 && found == 1)
 			{
+				// cprintf("two%d<><>%d\n", i, p->pid);
 		      // Switch to chosen process.  It is the process's job
 		      // to release ptable.lock and then reacquire it
 		      // before jumping back to us.
@@ -452,7 +460,41 @@ MFQscheduler(void) {
 		      // It should have changed its p->state before coming back.
 		    	c->proc = 0;
 			}
-	    }
+    	} else if (i == 3) {
+    		for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+		        if(p->state != RUNNABLE || p->MFQpriority != i)
+		            continue;
+	    		if (highP == 0)
+	    		{
+	    			highP = p;
+	    		}
+			    // Choose the process with highest priority (among RUNNABLEs)
+	            if(highP->priority >= p->priority)
+	                highP = p;
+	        }
+
+	    	if(highP != 0){
+                p = highP;
+                found = 1;
+	    	}
+	    	if(p != 0 && found == 1)
+			{
+				// cprintf("th%d<><>%d\n", i, p->pid);
+		      // Switch to chosen process.  It is the process's job
+		      // to release ptable.lock and then reacquire it
+		      // before jumping back to us.
+		    	c->proc = p;
+		    	switchuvm(p);
+		    	p->state = RUNNING;
+
+		    	swtch(&(c->scheduler), p->context);
+		    	switchkvm();
+
+		      // Process is done running for now.
+		      // It should have changed its p->state before coming back.
+		    	c->proc = 0;
+			}
+    	}
 	    if (found == 1)
 	    {
 	    	MFQpriority = i;

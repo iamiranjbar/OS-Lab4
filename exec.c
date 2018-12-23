@@ -103,7 +103,7 @@ exec(char *path, char **argv)
   // cmostime(&curproc->ctime);
   // curproc->priority = 10;
   // curproc->MFQpriority = 1;
-  // curproc->tickets = 1;
+  curproc->tickets = 500;
   switchuvm(curproc);
   freevm(oldpgdir);
   return 0;

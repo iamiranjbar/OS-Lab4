@@ -94,7 +94,7 @@ found:
   p->ctime = ticks;
   p->priority = 10;
   p->MFQpriority = 1;
-  p->tickets = 1;
+  p->tickets = 100;
   for (i = 0; i < 36; ++i)
   {
     p->syscalls[i].count = 0;

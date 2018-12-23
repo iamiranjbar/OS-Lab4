@@ -334,41 +334,41 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
-// void
-// scheduler(void)
-// {
-//   struct proc *p;
-//   struct cpu *c = mycpu();
-//   c->proc = 0;
+void
+scheduler(void)
+{
+  struct proc *p;
+  struct cpu *c = mycpu();
+  c->proc = 0;
   
-//   for(;;){
-//     // Enable interrupts on this processor.
-//     sti();
+  for(;;){
+    // Enable interrupts on this processor.
+    sti();
 
-//     // Loop over process table looking for process to run.
-//     acquire(&ptable.lock);
-//     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-//       if(p->state != RUNNABLE)
-//         continue;
+    // Loop over process table looking for process to run.
+    acquire(&ptable.lock);
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
 
-//       // Switch to chosen process.  It is the process's job
-//       // to release ptable.lock and then reacquire it
-//       // before jumping back to us.
-//       c->proc = p;
-//       switchuvm(p);
-//       p->state = RUNNING;
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      c->proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
 
-//       swtch(&(c->scheduler), p->context);
-//       switchkvm();
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
 
-//       // Process is done running for now.
-//       // It should have changed its p->state before coming back.
-//       c->proc = 0;
-//     }
-//     release(&ptable.lock);
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+    }
+    release(&ptable.lock);
 
-//   }
-// }
+  }
+}
 
 void
 MFQscheduler(void) {
@@ -582,7 +582,7 @@ ps(void)
   struct proc *p;
 
   acquire(&ptable.lock);
-  cprintf("NAME       \tPID        \tSTATE      \tPRIORITY   \tTICKETS    \tCREATETIME \tMFQPRIORITY\n");
+  cprintf("NAME\tPID\tSTATE\t\tPRIORITY\tTICKETS\tCTIME\tLEVEL\n");
   cprintf("---------------------------------------------------------------------------------------------------\n");
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 	if(p->state == UNUSED)
@@ -611,7 +611,7 @@ ps(void)
   	}
 
     cprintf("\t%d", p->priority);
-    cprintf("\t%d", p->tickets);
+    cprintf("\t\t%d", p->tickets);
     cprintf("\t%d", p->ctime);
     cprintf("\t%d\n\n", p->MFQpriority);
   }

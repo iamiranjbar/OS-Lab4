@@ -21,11 +21,11 @@ main(int argc, char* argv[])
         printf(1,"error\n");
     else if(pid == 0){
         //chmfq(getpid(),3);
-        //ps();
-        for (z = 0; z < 100000; z+=1){
+        ps();
+        for (z = 0; z < 10000; z+=1){
             int s;
             s = uptime();
-            while((uptime() - s) > 100000){
+            while((uptime() - s) > 100){
                 ;
             }
         }

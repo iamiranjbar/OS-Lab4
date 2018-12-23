@@ -7,6 +7,6 @@
 int
 main(int argc, char* argv[])
 {
-    ps();
+    chmfq(atoi(argv[1]), atoi(argv[2]));
     exit();
 }

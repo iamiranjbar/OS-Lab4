@@ -421,12 +421,14 @@ MFQscheduler(void) {
     		for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 		        if(p->state != RUNNABLE || p->MFQpriority != i)
 		            continue;
-	            if (minP != 0)
-	                if(p->ctime < minP->ctime)
+	            if (minP != 0){
+	                if(p->ctime < minP->ctime){
 	                    minP = p;
+                    }
 	            }
-	            else
+	            else{
 	                minP = p;
+                }
 	        }
 
             if(minP != 0 && minP->state == RUNNABLE){
@@ -487,7 +489,7 @@ MFQscheduler(void) {
             MFQpriority = 1;
     }
     release(&ptable.lock);
-  }	
+  }
 }
 
 int
